@@ -1,0 +1,37 @@
+##############################################
+################ SUMMARY #####################
+
+The script uses leave-one-group-out cross-validation to evaluate how well connectivity features from effective, functional, and structural brain data predict learning performance across participants grouped by acquisition task.
+
+##############################################
+############ DETAILED SUMMARY ################
+
+- Set-Up and Configuration
+Imports required libraries and sets file paths. Defines the task of interest (e.g., acquisition) and selects specific region-of-interest (ROI) pairs based on the task.
+
+- Data Loading and Preprocessing
+Loads brain connectivity data (effective connectivity [EC], functional connectivity [FC], and structural connectivity [SC]) from .tsv files, and selects appropriate ROI pairs as features
+
+- Model Training and Validation
+For each modality (EC, FC, SC), standard linear regression models are trained to predict learning scores using the selected connectivity features. Performs Leave-One-Group-Out (LOGO) cross-validation using AG group labels to ensure models generalize across subject groups. Predicts learning scores for each left-out group and collects model outputs.
+
+- Results Aggregation and Saving
+Combines predictions and actual learning scores across all three modalities into a single DataFrame.
+
+
+##############################################
+########## REQUIRED LIBRARIES ################
+
+Python packages: pandas, numpy, os, sklearn, scipy
+
+##############################################
+############ REQUIRED INPUTS #################
+
+In order to run this script, the following files are required:
+
+- Learning and brain connectivity dataframe (from pipeline_modelling.R)
+
+##############################################
+################# OUTPUTS ####################
+
+- Dataframe containing predicted and actual values.

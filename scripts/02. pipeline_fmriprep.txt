@@ -1,0 +1,46 @@
+
+##############################################
+################ SUMMARY #####################
+
+This script automates the parallelized preprocessing of resting-state fMRI and anatomical MRI data using fMRIPrep within a Docker environment, managing participant metadata and tracking processing status.
+
+##############################################
+############ DETAILED SUMMARY ################
+
+- Set-Up and Configuration and Participant Metadata Filtering
+Initializes directory paths for the raw data, derivatives, workflows, and FreeSurfer; sets study identifiers (AG, exp), CPU resources, and FreeSurfer license location
+Reads the BIDs participants.tsv file, filtering for participants who have resting-state fMRI (rsfMRI) and/or T1-weighted (T1w) data for further preprocessing.
+
+- FMRIPREP Command Generation
+Defines a function (fmriprep_cmd) that constructs the appropriate fmriprep command (as a Docker command) based on subject data type, processing options (e.g., --ignore, --output-space, --dummy-scans), and system configuration.
+
+- For each participant:
+	1. Determines the required preprocessing pipeline (resting-state fMRI vs. anatomical only).
+	2. Generates the corresponding fmriprep command.
+    3. Compares the command with any previously run version (if stored).
+    4. Runs the command using subprocess.run() if it's new or needs to be re-run.
+    5. Logs command output and execution time; handles failed runs with warnings.
+
+- Logging and Rerun Control
+Maintains command logs per subject in individual text files; allows for selective reruns using the subs_rerun list and comparison of past vs. current commands.
+
+- Parallelization
+Splits the list of subjects into chunks and uses Python’s multiprocessing to parallelize fmriprep processing across CPU cores.
+
+##############################################
+########## REQUIRED LIBRARIES ################
+
+Python packages: pandas, os, multiprocessing, subprocess, shlex, datetime, psutil, warnings (these libraries can be installed using: pip install [lib])
+Custom python functions: split_equal (these functions are provided in the script custom/misc_funs.py)
+Other: fmriprep (https://fmriprep.org/en/stable/installation.html)
+
+##############################################
+############ REQUIRED FILES ##################
+
+- FreeSurfer's license.txt
+- participants.tsv
+
+################# OUTPUTS ####################
+
+- fmriprep with preprocessed files
+- freesurfer data

@@ -1,0 +1,72 @@
+
+################ SUMMARY #####################
+
+This script standardised learning scores across studies to control for site effects and used nested cross-validated LASSO regression models (with functional, structural, or effective connectivity as predictors and demographic covariates) to identify stable brain-behaviour associations.
+
+############ DETAILED SUMMARY ################
+
+# LASSO
+
+- Set-Up and Configuration
+Initializes file paths, analysis settings, and loads necessary libraries for data manipulation, parallel processing, statistical modeling, and helper functions.
+
+- Data Loading and Preprocessing
+Loads participant learning data (behavioral and EDA), demographic data, and excludes invalid participants. Merges learning and demographic data into a unified dataframe.
+
+- Connectivity Data Handling
+Loads functional (FC), structural (SC), and effective (EC) connectivity data while excluding participants flagged for poor-quality data.
+
+- Group-wise and Modality-wise Processing
+Iterates through predefined subject group combinations (AGs) and connectivity types (FC, SC, EC), selects and filters valid data, normalizes metrics, and computes composite connectivity scores for FC.
+
+- Standardisation of Learning Estimates
+Standardises learning scores within each study-experiment combination to have a mean of 0 and variance of 1, ensuring comparability across studies while preserving within-group individual differences, and reducing unwanted variability due to site effects.
+
+- LASSO Regression Model Setup
+Fits separate LASSO models to predict learning scores using FC, EC, or SC, with age and sex included as covariates in all models.
+Models are fitted across all studies and specific study subsets.
+
+- Cross-Validation and Lambda Optimization
+A 100-iteration outer loop ensured stability and generalisability of model results. Each iteration used a custom sequence of 1,000 λ values, optimising for minimum cross-validation error. The process identified consistent, stable features across data splits.
+
+- Custom Nested Cross-Validation
+An inner 10-fold cross-validation is used to evaluate model prediction error across acquisition, extinction, and renewal phases. Each fold served once as the test set while the others were used for training, repeated 10 times.
+
+# Poisson regression
+
+- Set-Up and Parallelized Simulation
+Performs 100 parallelized iterations using foreach to repeatedly subsample data for bootstrapped modeling runs.
+
+- LASSO Regression and Feature Selection
+In each iteration, constructs a predictor matrix including connectivity pairs and covariates, applies LASSO regression via glmnet with cross-validation to identify the best lambda, and extracts selected features.
+
+- Feature Region Analysis
+Counts how often each brain region (AMY, ACC, HIP, PFC, CEB) appears in the selected LASSO features across iterations, storing counts per iteration and modality.
+
+- Statistical Comparison
+Uses a Poisson generalized linear mixed model to statistically compare region selection frequencies across bootstrapped iterations, adjusting for repeated measures using random effects and correcting for multiple comparisons with FDR.
+
+
+##############################################
+########## REQUIRED LIBRARIES ################
+
+R packages: lme4, emmeans, ggplot2, car, dplyr, caret, tibble, tidyr, lmerTest, glmnet, doMC (these libraries can be installed using: install.libraries("lib")
+
+##############################################
+############ REQUIRED INPUTS #################
+
+In order to run this script, the following files are required:
+
+- SCR and behavioural learning dataframes (from pipeline_learning.R)
+- Functional, structural and effective connectivity dataframes (from pipeline_FC.py, pipeline_SC.py and pipeline_EC.m)
+- Demographics dataframe
+- Exclusion dataframe
+
+##############################################
+################# OUTPUTS ####################
+
+- Dataframe containing the significant connections split by connectivity type, group and task.
+connection  group	task	connectivity  coef
+lAMY_lHIP  S4  acquisition  FC  0.2
+lACC_lPFC  S2_S3  acquisition  FC  0.1
+...

@@ -1,0 +1,40 @@
+
+################ SUMMARY #####################
+
+This matlab script processes cerebellar ROIs for each participant by aligning anatomical images, applying the SUIT pipeline, extracting region-specific data, and updating atlas files if resting-state fMRI data is available.
+
+############ DETAILED SUMMARY ################
+
+- Set-Up and Configuration
+The script begins by configuring the environment: it removes PsPM from the MATLAB path due to conflicts with SPM, adds SPM to the path, and sets up necessary directory paths for raw data, derivatives, ROIs, templates, and workflows. Subject-specific settings and a cerebellar atlas description are also defined.
+
+- Data Extraction and Aggregation
+It reads the participant list from a BIDS participants.tsv file and iterates over each subject. For each, it locates the anatomical T1-weighted image and initializes directories for outputs and intermediate steps. AC-PC alignment is attempted repeatedly until successful, after which the SUIT pipeline is run to transform the cerebellum.
+
+- Data Cleaning and Preprocessing
+For each subject, relevant atlas and functional data are extracted and unzipped. The cerebellar ROIs are generated using the SUIT segmentation and transformation. If resting-state fMRI data exists, the subject’s functional ROIs are used to update the corresponding atlas and metadata files.
+
+########## REQUIRED LIBRARIES ################
+
+SUIT (https://www.diedrichsenlab.org/imaging/suit.htm)
+SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/spm12/)
+
+############ REQUIRED INPUTS #################
+
+- SUIT template (atl-Anatom_space-SUIT_dseg.nii)
+- SUIT LUT (atl-Anatom.tsv)
+- participants.tsv (created from pipeline_BIDs.py)
+
+The following files generated after running pipeline_ROIs.py:
+- T1w image (*_desc-preproc_T1w.nii.gz)
+- BOLD reference (*_space-T1w_boldref.nii.gz)
+- Parcellation atlas (*_dseg.nii.gz)
+
+The following files generated after running pipeline_ROIs.py:
+- Custom atlas (*_dseg.nii.gz)
+- atlas labels (*_dseg.json)
+
+################# OUTPUTS ####################
+
+- Cerebellar ROIs (e.g., sub-01_space-T1w_roi-Fastigial_hemi-Left_desc-suit_mask.nii.gz)
+- Updated atlas (*_dseg.nii.gz) and atlas labels (*_dseg.json) with cerebellar regions

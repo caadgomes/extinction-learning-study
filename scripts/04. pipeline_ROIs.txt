@@ -1,0 +1,74 @@
+
+################ SUMMARY #####################
+
+This script generates subject-specific volumetric and surface ROI masks, reduced atlases from FreeSurfer segmentations and atlases in a BIDS-structured dataset.
+
+############ DETAILED SUMMARY ################
+
+- ROI Definitions
+Defines specific ROI labels for brain structures (e.g., Hippocampus, Amygdala, vmPFC, etc) and reads FreeSurfer's color LUT to map region names to label indices.
+
+- Tissue Type Mapping
+Defines white matter (WM) and cerebrospinal fluid (CSF) tissue labels from FreeSurfer.
+
+- Participants and Workflow Initialization
+Reads participants.tsv to extract subjects with T1w images and locates anatomical, segmentation, and surface files for each participant.
+
+- ROI Extraction from Atlas
+Extracts binary masks for defined ROIs and optionally erodes masks. 
+Creates a reduced atlas using selected ROIs with new index labels and saves them as .nii.gz and .json.
+
+- Annotation to Label Conversion (FreeSurfer)
+A custom interface class Annotation2Label converts FreeSurfer annotation files (e.g., aparc.annot) into .label files.
+
+- FreeSurfer ROI Filename Construction
+Generates filenames for subject-specific FreeSurfer ROI masks using metadata.
+Outputs match indices and target file paths.
+
+- Merging Labels
+Combines multiple FreeSurfer .label files into one per region (e.g., dACC, vmPFC). 
+Converts anatomical surfaces and merged labels into GIFTI .gii format.
+
+- Surface-to-Volume Mapping
+Maps surface ROIs into volumetric space using a reference image.
+
+- Tissue Mask Extraction
+It generates binary masks for each tissue label from aparc+aseg and saves them as NIfTI volumes.
+Converts and renames pial surfaces into standardized .gii format.
+
+- Cerebellum ROI Transformation
+Transforms cerebellar ROIs into FreeSurfer space using ANTs and aligns them with the subject-specific anatomy.
+
+########## REQUIRED LIBRARIES ################
+
+Python packages: os, glob, errno, re, numpy, pandas, nibabel, nilearn, nipype, subprocess, shutil (these libraries can be installed using: pip install [lib])
+Custom python functions: split_filename, replace_value (these functions are provided in the script custom/misc_funs.py)
+Other: FreeSurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall), FSL (https://web.mit.edu/fsl_v5.0.10/fsl/doc/wiki/FslInstallation.html), ANTs (https://github.com/ANTsX/ANTs)
+
+############ REQUIRED FILES ##################
+
+In order to run this script, the following files are required:
+
+- FreeSurferColorLUT.txt (https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/AnatomicalROI/FreeSurferColorLUT)
+- participants.tsv (generated after running pipeline_BIDS.py)
+
+The folowing files generated after running pipeline_fmriprep.py:
+- *_desc-preproc_T1w.nii.gz
+- aparc+aseg.mgz
+- *aparc.annot
+- [rl]h.white
+- orig.mgz
+- [lr]h.pial
+- *from-T1w_to-fsnative_*xfm.txt
+
+############ OUTPUTS ##################
+
+- Atlas file (*_dseg.nii.gz)
+- Atlas' labels (*_dseg.json)
+{
+  "Left_Hippocampus": 1,
+  "Right_Hippocampus": 2,
+  "Left_Amygdala": 3,
+  ...
+
+

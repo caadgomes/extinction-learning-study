@@ -1,0 +1,117 @@
+
+##############################################
+################ SUMMARY #####################
+
+These scripts (09a, 09b and 09c) prepares EDA data (09a), runs DCM (09b) and spontaneous fluctuations (SF, 09c).
+
+##############################################
+############ DETAILED SUMMARY ################
+
+# script 09a
+
+- Set-Up and Configuration
+Initializes group and experiment identifiers, directory paths for raw data, workflows, and derivatives. Loads settings from a JSON file (PsPM_settings.json) and sets general processing parameters like the filter type.
+
+- Participant Metadata Management
+Loads the participants.tsv file. Initializes an empty exclusion list and prepares participant-specific directories.
+
+- Workflow Configuration
+Initializes PsPM toolbox and defines workflow-specific folders for each subject and task. Prepares argsnode structures to pass parameters between workflow nodes.
+
+- EDA Data Import and Processing
+Iterates over participants and tasks (e.g., acquisition), then:
+	-Identifies physiological data files (*_physio.tsv.gz) and matching events.tsv.
+	-Calls the write_eda node to prepare EDA data structures.
+	-Calls import_eda to align event markers with EDA data.
+
+- EDA Signal Filtering and Trimming
+If filtering is enabled, loads filtering parameters from JSON and applies the specified filter (e.g., median).
+Then loads trimming parameters and trims the filtered EDA signal based on task-specific onset information.
+
+- Missing Epoch Generation (Optional)
+If gen_miss is enabled, generates missing data epochs using the gen_missing_epochs node. Parameters are loaded from JSON and enriched with filtering metadata.
+
+# script 09b
+
+- Set-Up and Configuration
+Initializes directory paths for data, workflows, and derivatives. Configures PsPM settings via PsPM_settings.json, sets DCM model parameters (e.g., delays, model constraints), and defines contrasts for each task (e.g., acquisition, extinction, recall).
+
+- Participant Metadata Management
+Reads in participant information from participants.tsv and subject exclusions from desc-excludeSubs_table.tsv. Prepares lists of participants to run and initializes empty tables to store statistical results (T_stats, T_con, T_diagn).
+
+- Workflow Configuration
+Sets up subject-specific working directories, prepares argsnode structures to manage parameters, and defines which tasks to process (choose_tasks). Initializes the PsPM toolbox and defines helper functions (e.g., mergestructs).
+
+- Data Preparation and Preprocessing
+For each subject and task:
+    -Loads event timing information (*_desc-trimmed_events.tsv) and adjusts stimulus durations where necessary.
+    -Loads final preprocessed EDA files (*_physio.mat) and corresponding missing epoch files.
+
+- DCM Timing and Condition Construction
+Generates condition onset timings and delay intervals for use in DCM:
+    -Extracts onsets for context, CS, and US trials based on task and group.
+    -Applies group-specific logic to define stimulus types (e.g., CS+US_N, CS+noUS_G, etc.).
+    -Constructs index_conds structures identifying trial types and builds the dcm_struct for PsPM modeling.
+
+- Dynamic Causal Modeling (DCM)
+For each subject and task (or combined tasks if combine_tasks is enabled):
+    -Runs the DCM analysis via run_pspm_dcm.
+    -Extracts beta parameters with extract_betas and saves statistics to subject-specific TSV files.
+    -Optionally runs DCM contrasts (run_cons) and saves contrast-level betas.
+
+- Group-Level DCM Statistics
+If enabled (get_group_stats is true), writes group-level beta and contrast data to TSV files in the group directory.
+
+# script 09c
+
+- Set-Up and Configuration
+Initializes paths for raw data, workflows, and derivatives. Creates workflow output directories and initializes tables for statistics.
+
+- Participant Metadata Management
+Reads participant metadata from participants.tsv and exclusions from desc-excludeSubs_table.tsv.
+
+- Workflow Configuration
+Sets up the output directory structure for skin conductance model fitting. Defines subject-specific workflow folders and initializes helper structures like argsnode and sf_struct. Defines contrast diagnostics (con_diag) for evaluating condition-specific SF model results.
+
+- Event and Epoch Processing
+For each subject and task:
+    -Loads trimmed event files.
+    -Applies task-specific preprocessing to event data (merging conditions, adjusting durations).
+    -Defines onsets and offsets either from conditions or breaks (epoch_type logic).
+	-Optionally adjusts sessions for specific groups (e.g., A12 adds session identifiers based on Ratings trials).
+    -Computes trial windows by extending offsets with a conductance_delay.
+
+- Skin Conductance Model Execution (SF Analysis)
+For each valid subject/task pair:
+    -Identifies input EDA files and missing epochs.
+    -Defines a configuration struct (sf_struct) for model fitting.
+    -Calls the run_pspm_sf node to estimate skin conductance responses over the defined intervals.
+    -If successful, extracts SF amplitudes with run_extract_sf using defined options (e.g., condition exclusions, summary function like mean).
+    -Adjusts labels for specific AGs (e.g., A12 relabels trials after the first US_ as reinstatement).
+    -Saves task-specific SF beta tables for each subject to the SF directory.
+	
+- Group-Level SF Statistics
+If group statistics are enabled (get_group_stats = 1), the script aggregates all subject-level SF results and writes a combined TSV file to the group directory.
+
+##############################################
+########## REQUIRED LIBRARIES ################
+
+PsPM, custom functions (see custom functions folder)
+
+##############################################
+############ REQUIRED INPUTS #################
+
+In order to run this script, the following files are required:
+- EDA data in BIDs format (after running pipeline_BIDS.py)
+
+##############################################
+################# OUTPUTS ####################
+
+- Dataframe with each subject's trial-by-trial amplitude estimates for CS+ and CS- conditions.
+
+Example:
+participant	Study	condition	trial	amplitude
+sub-01		S1		CS+			1		0.17
+sub-01		S1		CS+			2		0.29
+...
+sub-01		S1		CS-			40		0.10

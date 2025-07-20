@@ -1,0 +1,67 @@
+
+##############################################
+################ SUMMARY #####################
+
+This script preprocesses participant data, model learning performance across acquisition, extinction, and renewal phases using mixed-effects logistic regression, and compute individual-level learning scores to quantify expected value-based task performance.
+
+##############################################
+############ DETAILED SUMMARY ################
+
+# SCR-based learning
+
+- Set-Up and Configuration
+Defines study- and task-specific configurations for different experimental groups (AGs).
+
+- Data Extraction and Aggregation
+Loads model-derived amplitude data (betas) for each participant, task (acquisition, extinction, renewal), and study, combining them into a unified dataframe.
+
+- Data Cleaning and Preprocessing
+Filters out irrelevant or non-informative trial types and conditions, relabels conditions (e.g., CS+ vs CS-), and adds trial counters to track repeated measures.
+
+- Trial Binning and Averaging
+Batches trials into bins (e.g., by cutting into 8 segments) and calculates average amplitudes per bin, per participant, condition, and task (for later analysis).
+
+- Linear Mixed Effects Modeling
+Fits a mixed-effects model (lmer) to examine amplitude changes over time across conditions during renewal, and compares estimated trends (slopes) using emtrends and pairs.
+
+- Individual Participant Curve Modeling
+Loops over all participants to fit condition-specific learning curves using second-order polynomial regression, extracting derived "learning slopes" (difference between CS+ and CS-) for each participant and task.
+
+- Learning Score Calculation
+Creates a summary dataframe with slope estimates per participant and computes an overall "learning score" by subtracting CS- from CS+ slopes, resulting in the final learning dataframe used in further analyses.
+
+# Behaviour learning
+
+- Set-Up and Configuration
+Initializes directory paths for data and outputs. Also defines helper functions to compute expected value and trial condition timing.
+
+- Task Analysis (for acquisition, extinciton and renewal separately)
+Fits a generalized linear mixed model (GLMM) to predict accuracy based on trial condition and session.
+Extracts participant-level coefficients and classifies learning trends.
+Predicts accuracy for each trial condition and calculates expected value (EV) of learning.
+
+- Summary Data Aggregation
+Combines acquisition, extinction, and renewal learning metrics into a unified dataframe.
+
+
+##############################################
+########## REQUIRED LIBRARIES ################
+
+R packages: lme4, emmeans, ggplot2, ggcorrplot, dplyr, stringr, tibble, tidyr, lmerTest (these libraries can be installed using: install.libraries("lib")
+
+##############################################
+############ REQUIRED INPUTS #################
+
+In order to run this script, the following files are required:
+- SCR dataframes from each participant in studies S1, S2, S3, S5, S6 (created after running pipeline_EDA_DCM.m and pipeline_EDA_SF.m)
+- Behavioural dataframes from each participant from study S4 (from rawdata folder)
+
+##############################################
+################# OUTPUTS ####################
+
+- Two dataframes (SCR and behavioural) containing one learning estimate per participant and per task (acquisition, extinction, renewal)
+participant	study	experiment	task	learning
+sub-01	S1	exp1	acquisition	0.034
+sub-02	S1	exp1	acquisition	0.486
+sub-03	S1	exp1	acquisition	0.021
+...

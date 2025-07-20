@@ -1,0 +1,85 @@
+##############################################
+################ SUMMARY #####################
+
+This script 1) iteratively processes functional, structural, and effective connectivity data across combinations of AG groups, selects predictive features from LASSO output, and evaluates model generalizability through repeated simulations and error comparisons, 2) computes task-based functional connectivity using selected features and compares their predictive power with connectivity from random ROI pairs, and 3) runs simulations with bootstrapped data to test the predictive accuracy of LASSO-selected connectivity features on learning across different groupings (PL vs FL)and sample sizes, comparing model performance to randomly selected features.
+
+
+##############################################
+############ DETAILED SUMMARY ################
+
+# Generalisability Fig. 4-A-C
+
+- Set-Up and Configuration
+Loads necessary R libraries, sets up root directories, and sources external helper functions.
+
+- Participant Metadata Management
+Loads participant demographic information from participants.tsv files. Merges behavioral and physiological learning data from separate TSV files. Removes duplicate or excluded subjects using lookup tables.
+
+- Connectivity Data Preparation
+Loads FC, SC and EC data from preprocessed group-level files.
+
+- Composite and Normalized Connectivity Scores:
+For each subject group combination and connectivity modality (FC, SC, EC), computes an FC composite connectivity score across multiple metrics and normalizes data.
+
+- Task-Specific Subsets and Feature Selection
+Subsets the data by task (acquisition, extinction, or renewal). Selects relevant brain region pairs (e.g., AMY, HIP, PFC) as features for modeling.
+
+- Model Training and Generalization Testing
+For specified group contrasts (e.g., PL vs. FL), trains Ridge regression models (via glmnet) on one group and tests them on the other. Uses 10-fold cross-validation to identify optimal lambda values. Evaluates performance using mean squared error (MSE) on both test data and randomly permuted data for comparison. Aggregates and stores model performance metrics (MSE) across 100 iterations per contrast.
+
+# Generalisability task fMRI
+
+- Set-Up and Data Loading
+Loads FC data for the "acquisition" task
+
+- Connectivity Data Preparation
+Joins connectivity data with participant learning and demographic information. Removes subjects with any missing values in the specified connectivity metrics. Computes a composite connectivity score per participant based on multiple metrics, incorporating direction and scaling.
+
+- Normalization and Feature Matrix Construction
+Normalizes the FC scores within each connection pair, reshapes the data into wide format (one column per connection), and isolates data for the "acquisition" task.
+
+- Model Building and Comparison:
+Selects a subset of brain region pair features and fits a linear model predicting learning scores from these features. Randomly samples an alternative set of predictors of equal size from the remaining features and fits a second model. Calculates and compares the average absolute coefficient magnitudes from both models as a proxy for feature influence.
+
+# Simulations
+
+- Set-Up and Configuration
+Initializes empty data frames to store model coefficients, bootstrapped errors, and mean squared error (MSE) results. Selects input connectivity data (FC, SC, or EC).
+
+- Data Preparation and Feature Engineering
+Filters and merges connectivity data (FC, SC, or EC) with participant metadata. Calculates composite scores for FC data; reshapes and normalizes all data into a wide format per brain region pair.
+
+- Model Input Selection
+Extracts predictors (connectivity pairs) retained from the previous LASSO regression (see pipeline_modelling.R).
+
+- Bootstrapping and Model Evaluation
+Classifies participants into two groups (PL and FL) and stratifies by sex. For a range of sample sizes, repeatedly:
+1) Estimates group- and sex-specific covariance matrices.
+2) Simulates synthetic data from multivariate normal distributions.
+3) Fits linear models to predict learning outcomes using selected (LASSO-derived) predictors.
+4) Compares model performance to models using randomly chosen predictors (same size) using RÂ².
+5) Stores and aggregates model evaluation metrics across iterations.
+
+
+##############################################
+########## REQUIRED LIBRARIES ################
+
+R packages: lme4, emmeans, ggplot2, car, dplyr, caret, tibble, tidyr, lmerTest, glmnet, doMC, scales, MASS (these libraries can be installed using: install.libraries("lib")
+
+##############################################
+############ REQUIRED INPUTS #################
+
+In order to run this script, the following files are required:
+
+- SCR and behavioural learning dataframes (from pipeline_learning.R)
+- Functional, structural and effective connectivity dataframes (from pipeline_connectivities.py)
+- Demographics dataframe (see example in rawdata folder)
+- Exclusion dataframe (see example in rawdata folder)
+- Dataframe with selected LASSO predictors (for the simulations)
+
+##############################################
+################# OUTPUTS ####################
+
+- Dataframe containing the mean squared error (MSE) values for both "test" and "baseline" models. (generalisability Fig. 4A-C)
+- Dataframe containing the significant connections and corresponding beta estimates from the task fMRI regression model.
+- Dataframe containing the R-squared values for both "model" and "random" data subsets. (simulations)

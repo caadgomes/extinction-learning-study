@@ -1,0 +1,51 @@
+
+################ SUMMARY #####################
+
+This MATLAB script automates subject-level and group-level Spectral DCM (spDCM) analysis for resting-state fMRI data using SPM, by defining ROI connections, preprocessing fMRI and mask files, extracting ROI time series, specifying GLMs, estimating DCMs, and finally performing group-level PEB model estimation and aggregation.
+
+############ DETAILED SUMMARY ################
+
+- Configuration Setup
+Defines key variables such as MRI space, confound type, model name, ROI connections, and output directories.
+
+- Subject Selection
+Reads participant metadata and filters for subjects with both resting-state and T1-weighted MRI data.
+
+- Per-Subject Processing Loop
+For each subject, it loads relevant files (functional MRI, masks, ROI definitions), extracts scan parameters (TR, TE) from JSON metadata, unzips required files and prepares the SPM GLM model, extracts time-series data from predefined ROIs, constructs and estimates the spDCM model, and saves extracted connectivity estimates to subject-level .tsv files.
+
+- ROI Connection Filtering
+Dynamically adjusts connection pairs if analyzing left/right hemisphere networks separately.
+
+- DCM Matrix Setup
+Constructs the “A” matrix of effective connectivity based on specified connections and ROI availability.
+
+- Group-Level Analysis
+Collects individual DCMs into a group-level model using PEB and BMC, saves group-level results and aggregated .tsv data table.
+
+########## REQUIRED LIBRARIES ################
+
+SPM12
+
+
+############ REQUIRED INPUTS #################
+
+- participants.tsv
+- Denoised file (*_Satterthwaite*_bold.nii.gz; created after pipeline_denoising.py)
+- Brain mask (*brain_mask.nii.gz; created after pipeline_fmriprep.py)
+- ROI files generated after pipeline_ROIs.py (e.g., *seed-Amygdala*_mask.nii.gz)
+
+The following files generated after running pipeline_ROIs.py:
+- atlas (*_dseg.nii.gz)
+- atlas labels (*_dseg.json)
+
+
+################# OUTPUTS ####################
+
+- Dataframe containing effective connectivity values for each pair of ROIs
+participant	study	experiment	seed	target	spDCM
+sub-01	S1	exp1	Left_Amygdala	Left_Amygdala	-0.298
+sub-01	S1	exp1	Right_CerebellumNuclei	Left_Amygdala	-0.435
+sub-01	S1	exp1	Left_Hippocampus	Left_Amygdala	-0.226
+...
+

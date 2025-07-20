@@ -1,0 +1,57 @@
+
+################ SUMMARY #####################
+
+This script section performs nuisance regression on fMRI data to remove unwanted signals from the fMRI datasets.
+
+############ DETAILED SUMMARY ################
+
+- Set-Up and Configuration
+Initializes directory paths and variables for different subject groups and studies, including defining study-specific paths for raw data, derivatives, fMRIPrep outputs, and workflow directories. Loads a FreeSurfer color lookup table and sets tissue labels for white matter and CSF.
+
+- Participant Selection
+Reads participant metadata from a participants.tsv file to identify subjects with both T1-weighted anatomical and resting-state fMRI data for processing.
+
+- Data File Selection
+Defines templates to select key input files from fMRIPrep outputs, including preprocessed BOLD images, brain masks, confound regressors, and anatomical segmentations.
+
+- Confound Extraction and Processing
+Defines a function to extract and create multiple confound regressors subsets from fMRIPrep confound files (e.g., cosine regressors, CSF+WM, motion parameters) and save them alongside JSON metadata.
+
+- Tissue Mask Extraction
+Creates tissue masks (white matter, CSF) from FreeSurfer aparc+aseg segmentation images using specified FreeSurfer region indices.
+
+- Confound Regression Preparation
+Sets up nodes to erode tissue masks, perform aCompCor noise component extraction with different merge methods, and generate combined confound regressors files.
+
+- Functional Data Trimming
+Defines a function to trim initial volumes from functional MRI time series, saving the trimmed data with updated filenames.
+
+- Nuisance Regression
+Defines parameters for nuisance regression such as polynomial order (polort=2), frequency cutoffs, and bandpass filter ranges, and performs nuisance regression using AFNI’s 3dTproject and FSL’s GLM.
+
+- Rename Outputs to BIDS Format
+Moves and cleans up files in output directories to comply with BIDS format.
+
+########## REQUIRED LIBRARIES ################
+
+Python packages: numpy, pandas, os, nipype, subprocess (these libraries can be installed using: pip install [lib])
+Other: FSL (https://web.mit.edu/fsl_v5.0.10/fsl/doc/wiki/FslInstallation.html), AFNI (https://afni.nimh.nih.gov/download)
+
+############ REQUIRED FILES ##################
+
+In order to run this script, the following files are required:
+
+- FreeSurferColorLUT.txt (https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/AnatomicalROI/FreeSurferColorLUT)
+- participants.tsv
+
+The folowing files that are generated after running pipeline_fmriprep.py:
+- *space-T1w_desc-preproc_bold.nii.gz
+- *space-MNI152NLin6Asym_desc-preproc_bold.nii.gz
+- *space-T1w_desc-brain_mask.nii.gz
+- *space-MNI152NLin6Asym_desc-brain_mask.nii.gz
+- *_desc-confounds_regressors.tsv
+- *_space-T1w_desc-aparcaseg_dseg.nii.gz
+
+############ OUTPUTS ##################
+
+- Denoised functional data (*_Satterthwaite*_bold.nii.gz)

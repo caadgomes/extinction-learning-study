@@ -1,0 +1,67 @@
+
+################ SUMMARY #####################
+
+This script orchestrates a neuroimaging data processing pipeline that prepares MRI and physiological data for BIDS (Brain Imaging Data Structure) compliance.
+
+############ DETAILED SUMMARY ################
+
+- Set-Up and Configuration
+Initializes directory paths, participant identifiers, and study-specific settings for different subject groups (e.g., A03, A05, etc.).
+
+- Participant Metadata Management
+Reads, creates, and merges participant information from various sources (.tsv and .xlsx files), updating the participants.tsv file to reflect which subjects have specific MRI data types (resting-state fMRI, DWI, T1w) and EDA data.
+
+- Workflow Configuration
+Defines a Nipype workflow using IdentityInterface, SelectFiles, Function, and DataSink nodes to process subjects iteratively.
+
+- Data Conversion
+Depending on the group, either converts DICOM files to NIfTI using Dcm2niix or directly copies and renames existing NIfTI files to BIDS-compliant names.
+
+- BIDS File Generation
+Organizes and renames functional (fMRI), structural (T1w), and diffusion (DWI) scans into BIDS format, updating associated JSON metadata and checking for exclusions.
+
+- Final Output
+Outputs BIDS-compliant data and updated participant metadata, ready for downstream analysis (e.g., using tools like fMRIPrep).
+
+- EDA Data Extraction and Formatting
+Extracts, processes, and saves Electrodermal Activity (EDA) data in BIDS-compliant format.
+
+- EDA File Handling and Preprocessing
+Locates EEG/EDA files in various formats (e.g., .vhdr, .vmrk, .eeg, .tsv.gz); loads and verifies EDA signals using MNE-Python, crops data based on task-relevant annotations, and aligns EDA time series with behavioral events.
+
+- Output and Workflow Integration
+For valid EDA data, generates corresponding .json metadata files describing signal properties (e.g., sampling frequency, units); corrects and normalizes behavioral event timestamps, ensuring all output files align with BIDS requirements.
+Saves processed EDA and behavioral data in the subject’s func directory under the BIDS rawdata directory.
+
+
+########## REQUIRED LIBRARIES ################
+
+Python packages: numpy, pandas, os, glob, errno, shutil, nipype, pathlib, re, subprocess, nibabel, json, pydicom, collections, gzip (these libraries can be installed using: pip install [lib])
+Custom python functions: flatten (this function is provided in the script custom/misc_funs.py)
+Other: dcm2niix (https://github.com/rordenlab/dcm2niix), mne-python (https://mne.tools/stable/install/index.html)
+
+############ REQUIRED INPUTS #################
+
+- Imaging data in either nifti or DICOM format
+- EDA data either in BIDs or BrainVision format
+
+################# OUTPUTS ####################
+
+- BIDS-compliant data
+
+Example:
+S1
+ -rawdata
+   -anat
+	sub-01_T1w.nii.gz
+   -func
+	sub-01_task-rest_bold.nii.gz
+	...
+	
+- participants.tsv
+
+Example:
+participant_id	Study	Age	Sex
+sub-01			S1		25	M
+sub-01			S2		23	F
+...

@@ -1,0 +1,67 @@
+
+################ SUMMARY #####################
+
+The script performs probabilistic tractography analysis by generating and filtering streamlines between brain regions, extracting metadata and streamline counts, and aggregating the results into group-level summary files.
+
+############ DETAILED SUMMARY ################
+
+- Workflow Initialization
+Creates a Nipype workflow for DTI processing, sets up subject iteration (infosource), and defines templates for selecting raw and preprocessed files.
+
+- DWI Preprocessing Pipeline
+Implements steps including denoising, Gibbs ringing correction, B0 extraction and merging, acquisition parameter computation, distortion correction (TOPUP), brain extraction, bias field correction, motion correction (EDDY), and diffusion tensor fitting (DTIFit).
+
+- Registration and Transformations
+This section registers diffusion images to anatomical (T1) and MNI space using tools like BBRegister, FLIRT, and c3d_affine_tool, and manages ITK-to-FSL conversions and warp field compositions.
+
+- ROI and Tractography Preparation
+It extracts and formats both surface and volumetric ROIs, generates tractography configuration files from pre-defined dictionaries, and prepares them for FSL's probtrackx2.
+
+- Tractography Execution
+Tractography is executed in parallel using a custom interface that wraps probtrackx2, with configurable sampling and path constraints for probabilistic connectivity analysis.
+
+- Extracting Streamline Metrics
+Parses log files and ROI metadata to calculate the total number of streamlines for each subject-seed-target pair.
+
+- Identifying Unique Streamlines
+Filters and saves unique tractography streamlines, returning metadata and a TSV file summarising them.
+
+- Aggregating and Saving Results
+Group-level streamline metrics are compiled and saved into structured TSV files.
+
+########## REQUIRED LIBRARIES ################
+
+Python packages: numpy, pandas as pd, os, glob, ast, nipype, subprocess, nibabel, nilearn, json, multiprocessing, functools, shutil, re, itertools (these libraries can be installed using: pip install [lib])
+Custom python functions: exclude_subs, split_equal, split_filename, extractBetween (these functions are provided in the script custom/misc_funs.py)
+Other: FreeSurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall), ANTs (https://github.com/ANTsX/ANTs), FSL (https://web.mit.edu/fsl_v5.0.10/fsl/doc/wiki/FslInstallation.html)
+
+############ REQUIRED INPUTS #################
+
+In order to run this script, the following files are required:
+
+- FreeSurferColorLUT.txt 
+- participants.tsv (created from pipeline_BIDs.py)
+
+The following files from rawdata are required:
+- Diffusion data (*_dwi.nii.gz)
+- Diffusion metadata (*_dwi.json)
+- Opposite phase encoding data (*_epi.nii.gz)
+- Opposite phase encoding metadata (*_epi.json)
+- Bvals file (*.bval)
+- Bvecs file (*.bvec)
+
+The folowing files that are generated after running pipeline_fmriprep.py:
+- T1w image (*_T1w.nii.gz)
+- T1w mask image (*_desc-brain_mask.nii.gz)
+- orig.nii.gz
+- brainmask.mgz
+
+################# OUTPUTS ####################
+
+- Dataframe containing pairwise streamlines
+participant	AG	study	hemi_seed	roi_seed	seed	hemi_target	roi_target	target	streamlines
+sub-AL03ER27	A08	Cort	Left	Amygdala	Left_Amygdala	Left	Hippocampus	Left_Hippocampus	19631
+sub-AL03ER27	A08	Cort	Left	Amygdala	Left_Amygdala	Left	dACC	Left_dACC	345
+sub-AL03ER27	A08	Cort	Left	Amygdala	Left_Amygdala	Left	vmPFC	Left_vmPFC	9564
+...
+

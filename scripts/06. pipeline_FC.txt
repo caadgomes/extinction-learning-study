@@ -1,0 +1,70 @@
+
+################ SUMMARY #####################
+
+The script orchestrates a comprehensive fMRI connectivity analysis workflow that preprocesses data and computes multiple connectivity (distance, correlation) and graph-theoretic metrics.
+
+############ DETAILED SUMMARY ################
+
+- Setup
+Initializes directory paths and loads participant data.
+Selects only participants with both T1-weighted and resting-state fMRI data.
+
+- File Selection & Metadata Extraction
+Gathers functional, atlas, and confound files and extracts scan metadata like TR and task information.
+
+- ROI Preparation
+Unzips atlas ROI files for compatibility with SPM-based tools, and filters out invalid or empty ROIs.
+
+- Functional Connectivity & Metrics
+Runs AFNI’s 3dRSFC to compute resting-state functional connectivity metrics.
+Calculates ReHo (regional homogeneity) using Kendall's coefficient.
+
+- Time Series Extraction
+Extracts ROI-wise time series using a labeled atlas, and saves time series as a TSV file with participant and study metadata.
+
+- Distance Metrics Computation
+Calculates pairwise distances or similarities between ROI time series using multiple methods (e.g., xcorr, Euclidean, Manhattan, DTW, LCSS, MI). Nodes are instantiated for each metric type, with customizable arguments for windowing, normalization, and distance parameters.
+
+- Connectivity Matrix Estimation
+Computes correlation or partial correlation matrices using nilearn.connectome.ConnectivityMeasure with various covariance estimators. The result is saved as both a raw matrix and a melted dataframe with labeled ROI pairs. Nodes are defined for empirical and Ledoit-Wolf estimators across correlation and partial correlation types.
+
+- Graph-Theoretical Metrics
+Calculates metrics like centrality and degree from connectivity matrices using Brain Connectivity Toolbox (BCT).
+
+- AFNI-Based Regional Signal Aggregation
+The aggregate_afni_conns function aggregates voxel-level functional maps (e.g., ALFF, ReHo) using an atlas to compute summary values (mean or median) per ROI. Outputs include a JSON of raw values and TSV files summarizing metrics by ROI. It distinguishes between standard metrics and ReHo-specific channels and labels each output by participant metadata.
+
+- Output organisation
+All intermediate results are aggregated and written to disk, combining connectivity matrices and time series across subjects and saves them to summary files.
+
+########## REQUIRED LIBRARIES ################
+
+Python packages: os, glob, itertools, errno, re, csv, shutil, numpy, pandas, multiprocessing, nipype, pathlib2, string, sklearn, json, subprocess, gzip, nilearn, itertools, scipy, tslearn, dtw-python, pycwt, operator, bctpy (these libraries can be installed using: pip install [lib])
+
+Custom python functions: exclude_subs, extractBetween, flatten, dict_update (these functions are provided in the script custom/misc_funs.py)
+
+Other: FreeSurfer (https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall), AFNI (https://afni.nimh.nih.gov/download)
+
+############ REQUIRED FILES ##################
+
+In order to run this script, the following files are required:
+
+- participants.tsv (created after pipeline_BIDs.py)
+- *_Satterthwaite*_bold.nii.gz (created after pipeline_denoising.py)
+The following files generated after running pipeline_ROIs.py:
+- atlas (*_dseg.nii.gz)
+- atlas labels (*_dseg.json)
+
+The folowing files that are generated after running pipeline_fmriprep.py:
+- *_desc-preproc_bold.nii.gz
+- *_desc-brain_mask.nii.gz
+
+############ OUTPUTS ##################
+
+- Dataframe containing pairwise functional connectivity values
+participant	seed	            target	          corr      	hemi_seed	roi_seed	  hemi_target	roi_target
+sub-01	    Left_Hippocampus	Left_Hippocampus	1.0	        Left	    Hippocampus	Left	      Hippocampus
+sub-01	    Left_Hippocampus	Right_Hippocampus	0.705	      Left	    Hippocampus	Right	      Hippocampus
+sub-01	    Left_Hippocampus	Left_Amygdala	    0.313	      Left	    Hippocampus	Left	      Amygdala
+...
+
