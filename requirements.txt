@@ -1,0 +1,76 @@
+Software and libraries (with specific versions) required to run the code:
+
+# R
+lme4 v1.1.35 
+ggplot2 v3.5.0
+lmerTest v3.1.3
+emmeans v1.8.5
+car v3.1.3
+dplyr v1.1.3
+caret v7.0-1
+tibble v3.2.1 
+tidyr v1.3.0
+glmnet v4.1.7
+doMC v1.3.8
+scales v1.2.1
+MASS v7.3-60.1
+psych v2.3.6
+
+# Python
+python 3
+numpy v1.24.2
+pandas v2.1.3
+os (standard library)
+glob (standard library)
+errno (standard library)
+shutil (standard library)
+nipype v1.8.6
+pathlib (standard library)
+re (standard library)
+subprocess (standard library)
+nibabel v5.1.0
+json (standard library)
+pydicom v2.4
+collections (standard library)
+gzip (standard library)
+multiprocessing (standard library)
+shlex (standard library)
+datetime (standard library)
+psutil v5.9.5
+warnings (standard library)
+nilearn v0.10.2
+itertools (standard library)
+csv (standard library)
+pathlib2 v2.3.7
+string (standard library)
+sklearn v1.3
+subprocess (standard library)
+scipy v1.11.0
+tslearn v0.5.3.2
+dtw-python v1.3.0
+pycwt v0.4.0
+operator (standard library)
+bctpy v0.6.1
+ast (standard library)
+functools (standard library)
+
+# Matlab
+Matlab R2022b
+Statistics and Machine Learning toolbox
+Wavelet toolbox
+Signal Processing toolbox
+Image Processing toolbox
+Parallel Computing toolbox
+PsPM v6.0
+SPM12
+SUIT v3.5
+
+# Other
+FreeSurfer v7.2
+FSL v6.0.6.1
+AFNI v22.1.13
+ANTS v2.4.3
+fmriprep v20.1.1 
+MRtrix3 v3.0.4
+acpcdetect v2.2
+
